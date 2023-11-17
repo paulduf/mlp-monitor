@@ -11,13 +11,16 @@ from catalyst import utils as ctutils
 import seaborn as sns
 from .utils import lookahead
 import numpy as np
+import matplotlib.pyplot as plt
 
 # %% ../nbs/01_core.ipynb 7
 import pandas as pd
 from functools import wraps
 
+
 class LossMonitor:
     """Parametrized decorator, name with be used to store loss function."""
+
     def __init__(self, name):
         self.name = name
         self._losses = []
@@ -30,21 +33,25 @@ class LossMonitor:
         """Decorator to log loss functions"""
 
         @wraps(method)
-        def _loss(*method_args, **method_kwargs):
+        def _loss(*method_args, batch=None, epoch=None, **method_kwargs):
             l = method(*method_args, **method_kwargs)
-            self._losses.append({self.name: l.detach().cpu().numpy()})
+            self._losses.append(
+                {self.name: l.detach().cpu().numpy()} | {"Epoch": epoch, "Batch": batch}
+            )
             return l
 
+        _loss.__name__ = self.name
         return _loss
-    
-    def plot(self, ax = None):
+
+    def plot(self, ax=None):
         if ax is None:
             ax = plt.gca()
         return ax.plot(range(len(self.losses)), self.losses, label=self.name)
 
+    def reset(self):
+        self._losses = []
 
-
-# %% ../nbs/01_core.ipynb 8
+# %% ../nbs/01_core.ipynb 10
 reg_monitor = LossMonitor("Reg")
 @reg_monitor
 def loss_l1(model, factor=0.0005):
@@ -62,9 +69,9 @@ rec_monitor = LossMonitor("Rec")
 #     return nn.functional.cross_entropy(x_pred, x_true)
 
 loss_rec = rec_monitor(nn.BCEWithLogitsLoss())
+loss_rec.__name__
 
-
-# %% ../nbs/01_core.ipynb 10
+# %% ../nbs/01_core.ipynb 12
 class MLP(nn.Module):
     def __init__(self, input_dim: int, hidden_dim = 30) -> None:
         super().__init__()
@@ -82,5 +89,5 @@ class MLP(nn.Module):
         return self.seq(x)
 
 
-# %% ../nbs/01_core.ipynb 15
+# %% ../nbs/01_core.ipynb 17
 from matplotlib import pyplot as plt
