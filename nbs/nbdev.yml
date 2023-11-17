@@ -1,0 +1,9 @@
+project:
+  output-dir: _docs
+
+website:
+  title: "mlp-monitor"
+  site-url: "https://paulduf.github.io/mlp-monitor"
+  description: "Utils function to monitor the gradients in pytorch"
+  repo-branch: main
+  repo-url: "https://github.com/paulduf/mlp-monitor"
